@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&family=Alatsi&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Afacad+Flux:wght@100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+        <title>Clinical Trials</title>
+
+        <style>
+            body {
+                margin: 0;
+                height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-family: "Afacad Flux", sans-serif;
+                background-image: url("{{ url_for('static', filename='images/background.jpg') }}");
+                background-size: cover;
+                background-color: #000000;
+            }
+
+            h1 {
+                text-align: center;
+                font-size: 40px;
+                font-family: "Alatsi", sans-serif;
+            }
+
+            p, h4, .download {
+                text-align: center;
+            }
+
+            input {
+                padding: 10px;
+                width: 100%;
+                border-radius: 40px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                border: solid 1px #d3d3d3;
+            }
+
+            input[type="submit"] {
+                width: 100px;
+                background-color: #3f7ebd;
+                color: #ffffff;
+                border: none;
+                border-radius: 40px;
+                transition: background-color 0.3s;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                font-size: medium;
+            }
+
+            input[type="submit"]:hover {
+                background-color: #1c4670;
+            }
+
+            .btn {
+                padding: 8px 10px;
+                cursor: pointer;
+                border: none;
+                text-align: center;
+                display: inline-block;
+                border-radius: 40px;
+                text-decoration: none;
+                background-color: #888073;
+                color:#f5f5dc;
+                transition: background-color 0.3s;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                font-family: "Afacad Flux", sans-serif;
+            }
+
+            .btn:hover {
+                background-color: #47433c;
+            }
+
+            .label {
+                font-weight: bold;
+            }
+
+            .square {
+                max-width: 500px;
+                width: 100%;
+                background-color: #ffffff;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                padding: 20px 50px;
+                border-radius: 20px;
+                margin: 20px;
+            }
+
+            .square:nth-of-type(2) {
+                max-width: 280px; 
+                position: absolute; 
+                right: 0; 
+                top: 5px;
+            }
+
+            .loading {
+                display: none;
+            }
+
+            .alerts {
+                text-align: left;
+                max-height: 240px; 
+                overflow-y: auto;  
+                padding-right: 10px;
+                border-radius: 5px;
+            }
+
+            .alert-item {
+                padding: 5px;
+                background-color: #f0f8ff;
+                margin-bottom: 10px;
+                border-radius: 5px;
+            }
+
+            .notif {
+                text-align: center;
+                padding: 5px;
+                background-color: #f0f8ff;
+                margin-bottom: 10px;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="square">
+            <h1>CLINICAL TRIALS</h1>
+            <p>Separate multiple search terms with a comma.<br> Ex. NSCLC, Breast Carcinoma, Prostate Cancer</p>
+            <form id="form" method="POST">
+                <label class="label">Conditions:</label>
+                <input class="search" type="text" name="conditions" list="conditions-list" required>
+                <datalist id="conditions-list">
+                    <option value="NSCLC">
+                    <option value="Metastatic NSCLC">
+                    <option value="Non Small Cell Lung Cancer">
+                    <option value="Breast Cancer">
+                    <option value="Prostate Cancer">
+                    <option value="Liver">
+                    <option value="Breast Carcinoma">
+                    <option value="NSCLC, Breast Cancer, Prostate Cancer, Liver">
+                </datalist>
+
+                <br><br>
+
+                <label class="label">Sponsors:</label>
+                <input class="search" type="text" name="sponsors" list="sponsors-list">
+                <datalist id="sponsors-list">
+                    <option value="AstraZeneca">
+                    <option value="Roche">
+                    <option value="Genentech">
+                    <option value="Bayer">
+                    <option value="Seagen">
+                    <option value="Pfizer">
+                    <option value="Janssen">
+                    <option value="Johnson & Johnson">
+                    <option value="Debiopharm">
+                    <option value="AstraZeneca, Roche, Genentech, Bayer, Seagen, Pfizer, Janssen, Johnson & Johnson, Debiopharm">
+                </datalist>
+
+                <br><br>
+
+                <input class="btn" type="submit" value="Submit">
+            </form> 
+
+            <p class="loading">Generating...</p>
+
+            {% if error %}
+                <h4> {{ error }} </h4>            
+            {% elif searched %}
+                <div class="download">
+                    <p>Excel file saved automatically. Download manually if needed:</p>
+                    <a class="btn" id="downloadbtn" href="/download">Download Excel Sheet</a>
+                </div>
+
+                <div class="square">
+                    <p>Date last searched: <br> {{ last_modified }}</p> 
+                    <p>Trials posted since last search: </p>
+
+                    {% if alerts %}
+                        <div class="alerts">
+                            {% set conditions_seen = [] %}
+                            
+                            {% for study, study_details in alerts.items() %}
+                                {% if study_details["Condition"] not in conditions_seen %}
+                                    <h3>{{ study_details["Condition"] }}</h3>
+                                    {% set tmp = conditions_seen.append(study_details["Condition"]) %}      
+                                {% endif %}                                      
+                                <div class="alert-item">
+                                    <a href="{{ study_details['Study URL'] }}" target="_blank">{{ study }}</a><br>
+
+                                    <strong>Sponsors/Collaborators:</strong> {{ study_details["Sponsors"] }}{{ study_details["Collaborators"] }}<br>
+                                    <strong>Posted:</strong> {{ study_details["First Posted"] }}<br>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="notif">
+                            <strong>NO NEW TRIALS</strong>
+                        </div>
+                    {% endif %}
+
+                    <p>Trial results posted since last search:</p>
+
+                    {% if result_alerts %}
+                        <div class="alerts">
+                            {% set conditions_seen = [] %}
+
+                            {% for study, study_details in result_alerts.items() %}
+                                {% if study_details["Condition"] not in conditions_seen %}
+                                    <h3>{{ study_details["Condition"] }}</h3>
+                                    {% set tmp = conditions_seen.append(study_details["Condition"]) %}      
+                                {% endif %}  
+
+                                <div class="alert-item">
+                                    <a href="{{ study_details['Study URL'] }}" target="_blank">{{ study }}</a><br>
+                                    <strong>Sponsors/Collaborators:</strong> {{ study_details["Sponsors"] }}{{ study_details["Collaborators"] }}<br>
+                                    <strong>Results Posted:</strong> {{ study_details["Results First Posted"] }}<br>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="notif">
+                            <strong>NO NEW RESULTS</strong>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <script>
+            const form = document.getElementById("form");
+            const loading = document.querySelector(".loading");
+    
+            form.addEventListener("submit", function(event) {
+                loading.style.display = "block";
+            });
+        </script>
+    </body>
+</html>
+
